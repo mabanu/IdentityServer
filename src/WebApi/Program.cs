@@ -58,3 +58,7 @@ internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary
         get => 32 + (int)(TemperatureC / 0.5556);
     }
 }
+
+public partial class Program
+{
+}
