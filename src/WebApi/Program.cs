@@ -1,8 +1,15 @@
+using Infrastructure;
+using Infrastructure.Data;
+
+using Microsoft.EntityFrameworkCore;
+
 using WebApi;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {
     builder.Services.AddWebApi();
+    builder.Services.AddInfrastructure(builder.Configuration);
+
     // Add services to the container.
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
@@ -11,6 +18,14 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 WebApplication app = builder.Build();
 {
+    using (IServiceScope scope = app.Services.CreateScope())
+    {
+        IServiceProvider services = scope.ServiceProvider;
+
+        AppDbContext context = services.GetRequiredService<AppDbContext>();
+        await context.Database.MigrateAsync();
+    }
+
     app.UseExceptionHandler();
 
     // Configure the HTTP request pipeline.
@@ -22,10 +37,10 @@ WebApplication app = builder.Build();
 
     app.UseHttpsRedirection();
 
-    string[] summaries = new[]
-    {
+    string[] summaries =
+    [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    ];
 
     app.MapGet("/weatherforecast", () =>
         {
@@ -45,7 +60,6 @@ WebApplication app = builder.Build();
     app.MapGet("/throw-exception", () =>
     {
         throw new Exception("yeah");
-        return;
     });
 
     app.Run();
@@ -59,6 +73,7 @@ internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary
     }
 }
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public partial class Program
 {
 }
